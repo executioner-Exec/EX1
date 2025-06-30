@@ -1,275 +1,70 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8" />
-<title>NUMi Flower Animation</title>
-<style>
-  html, body {
-    margin:0; padding:0; overflow:hidden; background:#000;
-    height: 100%; width: 100%;
-  }
-  #defaultCanvas0 {
-    display:block;
-  }
-</style>
+    <meta charset="UTF-8">
+    <title>بصمة الاصبع</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .message {
+            font-size: 24px;
+            margin-top: 100px;
+        }
+
+        .fingerprint-button {
+            position: absolute;
+            bottom: 50px;
+            left: 50px;
+            width: 80px;
+            height: 120px;
+            background-color: white;
+            border: 2px solid black;
+            border-radius: 50% / 40%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .final-image {
+            max-width: 90%;
+            max-height: 90%;
+            margin-top: 50px;
+        }
+    </style>
 </head>
 <body>
-<script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
-<script>
-let seedPos;
-let roots = [];
-let stem = null;
-let leaves = [];
-let flower = null;
+    <div class="container">
+        <div id="message" class="message">ضع إصبعك هنا</div>
+        <div id="fingerBtn" class="fingerprint-button"></div>
+        <img id="resultImg" class="final-image hidden" src="42427097-0F0F-4970-9B8F-F36B3E407122.jpeg" alt="بصمة">
+    </div>
 
-let state = "seed"; // seed -> roots -> stem -> leaves -> flower -> welcome -> wither -> numi
-let timer = 0;
-let welcomeAlpha = 0;
-let numiAlpha = 0;
+    <script>
+        const fingerBtn = document.getElementById("fingerBtn");
+        const message = document.getElementById("message");
+        const resultImg = document.getElementById("resultImg");
 
-function setup(){
-  createCanvas(windowWidth, windowHeight);
-  frameRate(60);
-  seedPos = createVector(width/2, height - 50);
-  roots = [];
-  leaves = [];
-}
-
-function windowResized(){
-  resizeCanvas(windowWidth, windowHeight);
-}
-
-function draw(){
-  background(0);
-  timer += 1/60;
-
-  if(state === "seed"){
-    drawSeed();
-    if(timer > 1){
-      state = "roots";
-      timer = 0;
-      initRoots();
-    }
-  }
-  else if(state === "roots"){
-    growRoots();
-    drawRoots();
-    drawSeed();
-    if(timer > 3){
-      state = "stem";
-      timer = 0;
-      initStem();
-    }
-  }
-  else if(state === "stem"){
-    growStem();
-    drawRoots();
-    drawStem();
-    drawSeed();
-    if(timer > 3){
-      state = "leaves";
-      timer = 0;
-      initLeaves();
-    }
-  }
-  else if(state === "leaves"){
-    growLeaves();
-    drawRoots();
-    drawStem();
-    drawLeaves();
-    drawSeed();
-    if(timer > 3){
-      state = "flower";
-      timer = 0;
-      flower = new Flower(seedPos.x, seedPos.y - stem.length);
-    }
-  }
-  else if(state === "flower"){
-    flower.grow();
-    drawRoots();
-    drawStem();
-    drawLeaves();
-    flower.show();
-    drawSeed();
-    if(timer > 3){
-      state = "welcome";
-      timer = 0;
-    }
-  }
-  else if(state === "welcome"){
-    welcomeAlpha = min(1, welcomeAlpha + 0.02);
-    drawRoots();
-    drawStem();
-    drawLeaves();
-    flower.show(welcomeAlpha);
-    drawSeed();
-    fill(0, 191, 255, welcomeAlpha*255);
-    textAlign(CENTER, CENTER);
-    textSize(64);
-    text("Welcome", width/2, height/2);
-    if(timer > 4){
-      state = "wither";
-      timer = 0;
-    }
-  }
-  else if(state === "wither"){
-    flower.wither();
-    welcomeAlpha = max(0, welcomeAlpha - 0.02);
-    drawRoots();
-    drawStem();
-    drawLeaves();
-    flower.show(welcomeAlpha);
-    drawSeed();
-    if(flower.size <= 0){
-      state = "numi";
-      timer = 0;
-    }
-  }
-  else if(state === "numi"){
-    numiAlpha = min(1, numiAlpha + 0.02);
-    fill(0, 191, 255, numiAlpha*255);
-    textAlign(CENTER, CENTER);
-    textSize(96);
-    text("NUMi", width/2, height/2);
-    if(timer > 4){
-      numiAlpha = max(0, numiAlpha - 0.02);
-      if(numiAlpha === 0){
-        reset();
-      }
-    }
-  }
-}
-
-function reset(){
-  timer = 0;
-  state = "seed";
-  welcomeAlpha = 0;
-  numiAlpha = 0;
-  roots = [];
-  leaves = [];
-  flower = null;
-  stem = null;
-}
-
-function drawSeed(){
-  noStroke();
-  fill(0, 191, 255);
-  ellipse(seedPos.x, seedPos.y, 20);
-}
-
-function initRoots(){
-  roots = [];
-  let count = 7;
-  for(let i=0; i<count; i++){
-    let angle = map(i, 0, count-1, -PI/3, PI/3);
-    roots.push({length:0, maxLength: random(50, 80), angle});
-  }
-}
-
-function growRoots(){
-  for(let r of roots){
-    if(r.length < r.maxLength) r.length += 2;
-  }
-}
-
-function drawRoots(){
-  stroke(0, 191, 255);
-  strokeWeight(3);
-  push();
-  translate(seedPos.x, seedPos.y);
-  for(let r of roots){
-    let x = cos(r.angle)*r.length;
-    let y = sin(r.angle)*r.length;
-    line(0,0,x,y);
-  }
-  pop();
-}
-
-function initStem(){
-  stem = {length: 0, maxLength: 250};
-}
-
-function growStem(){
-  if(stem.length < stem.maxLength) stem.length += 3;
-}
-
-function drawStem(){
-  stroke(0, 191, 255);
-  strokeWeight(7);
-  line(seedPos.x, seedPos.y, seedPos.x, seedPos.y - stem.length);
-}
-
-function initLeaves(){
-  leaves = [];
-  let count = 6;
-  for(let i=0; i<count; i++){
-    let y = seedPos.y - map(i, 0, count-1, 50, stem.length - 20);
-    let side = i%2 === 0 ? 1 : -1;
-    leaves.push({
-      y,
-      size: 0,
-      maxSize: random(25, 45),
-      side,
-      angle: random(0.15, 0.4)
-    });
-  }
-}
-
-function growLeaves(){
-  for(let l of leaves){
-    if(l.size < l.maxSize) l.size += 2;
-  }
-}
-
-function drawLeaves(){
-  noStroke();
-  fill(0, 191, 255, 180);
-  push();
-  translate(seedPos.x, 0);
-  for(let l of leaves){
-    push();
-    translate(l.side*25, l.y);
-    rotate(sin(frameCount*0.05 + l.y)*0.15);
-    ellipse(0, 0, l.size*1.8, l.size);
-    pop();
-  }
-  pop();
-}
-
-class Flower {
-  constructor(x,y){
-    this.pos = createVector(x,y);
-    this.size = 0;
-    this.maxSize = 80;
-    this.alpha = 0;
-  }
-  grow(){
-    if(this.size < this.maxSize){
-      this.size += 1.5;
-      this.alpha = map(this.size, 0, this.maxSize, 0, 255);
-    }
-  }
-  wither(){
-    if(this.size > 0){
-      this.size -= 1.5;
-      this.alpha = map(this.size, 0, this.maxSize, 0, 255);
-    }
-  }
-  show(globalAlpha=1){
-    push();
-    translate(this.pos.x, this.pos.y);
-    noStroke();
-    fill(0, 191, 255, this.alpha * globalAlpha);
-    for(let i=0; i<6; i++){
-      rotate(PI/3);
-      ellipse(this.size/2, 0, this.size, this.size/2);
-    }
-    fill(255, 255, 255, this.alpha * globalAlpha);
-    ellipse(0, 0, this.size/2, this.size/2);
-    pop();
-  }
-}
-
-</script>
+        fingerBtn.addEventListener("click", () => {
+            fingerBtn.classList.add("hidden");
+            message.classList.add("hidden");
+            resultImg.classList.remove("hidden");
+        });
+    </script>
 </body>
 </html>
